@@ -2,21 +2,30 @@ classDiagram
     class PawPalApp {
       +collect_owner_pet_info()
       +add_or_edit_task()
+      +filter_and_sort_tasks()
       +generate_daily_plan()
       +display_plan()
+      +display_conflicts()
     }
 
     class Owner {
       +name: str
       +available_minutes_per_day: int
       +preferences: dict
+      +pets: List~Pet~
+      +add_pet(pet: Pet)
+      +get_pet(name: str): Pet
+      +get_tasks(pet_name: str, completed: bool): List~tuple~
     }
 
     class Pet {
       +name: str
       +species: str
       +age: int
+      +tasks: List~CareTask~
+      +add_task(task: CareTask)
       +summary(): str
+      +sort_tasks(tasks, key, reverse)$ List~CareTask~
     }
 
     class CareTask {
@@ -26,13 +35,19 @@ classDiagram
       +duration_minutes: int
       +priority: Priority
       +notes: str
+      +completed: bool
+      +recurrence: str
+      +last_completed_date: date
+      +fixed_time: str
+      +mark_complete()
+      +is_due(today: date): bool
     }
 
     class Priority {
       <<enumeration>>
-      LOW
-      MEDIUM
-      HIGH
+      LOW = 1
+      MEDIUM = 2
+      HIGH = 3
     }
 
     class ConstraintProfile {
@@ -42,9 +57,16 @@ classDiagram
     }
 
     class Scheduler {
-      +generate_plan(owner: Owner, pet: Pet, tasks: List~CareTask~, constraints: ConstraintProfile): DailyPlan
-      +score_task(task: CareTask, constraints: ConstraintProfile): float
-      +explain_choice(task: CareTask): str
+      +START_HOUR: int = 8
+      +generate_plan(owner, pet, tasks, constraints): DailyPlan
+      +score_task(task, constraints): float
+      +explain_choice(task): str
+      +sort_by_time(tasks, reverse)$ List~CareTask~
+      +detect_conflicts(labeled_tasks)$ List~str~
+      +filter_tasks(tasks, completed, category, priority)$ List~CareTask~
+      -_time_to_minutes(time_str)$ int
+      -_minutes_to_time(minutes): str
+      -_minutes_to_time_static(total_minutes)$ str
     }
 
     class PlanItem {
@@ -66,6 +88,7 @@ classDiagram
       +total_minutes_used: int
       +total_minutes_available: int
       +summary_reasoning: str
+      +conflicts: List~str~
       +add_item(item: PlanItem)
       +drop_item(item: DroppedItem)
       +utilization(): float
@@ -77,6 +100,7 @@ classDiagram
     Owner "1" --> "1" ConstraintProfile : defines
     Scheduler --> ConstraintProfile : applies
     Scheduler --> DailyPlan : creates
+    Scheduler --> CareTask : scores and filters
     DailyPlan "1" o-- "0..*" PlanItem : contains
     DailyPlan "1" o-- "0..*" DroppedItem : tracks excluded
     PlanItem --> CareTask : schedules

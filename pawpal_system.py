@@ -206,6 +206,7 @@ class Scheduler:
         tasks: list[CareTask],
         constraints: ConstraintProfile,
     ) -> DailyPlan:
+        
         """Build a daily schedule using a two-phase algorithm.
 
         Phase 1 places fixed-time (anchored) tasks, detecting overlaps.

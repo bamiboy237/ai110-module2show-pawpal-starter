@@ -7,38 +7,7 @@ from pawpal_system import Owner, Pet, CareTask, Priority, Scheduler, ConstraintP
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
-
-st.markdown(
-    """
-Welcome to the PawPal+ starter app.
-
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
-"""
-)
-
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
+st.caption("Your daily pet care planner — add pets, schedule tasks, and stay on track.")
 
 st.divider()
 
@@ -136,7 +105,7 @@ if pet_names:
 
         sc1, sc2 = st.columns(2)
         with sc1:
-            sort_key = st.selectbox("Sort by", ["priority", "duration", "category", "title"], key="sortkey")
+            sort_key = st.selectbox("Sort by", ["priority", "duration", "category", "title", "time"], key="sortkey")
         with sc2:
             sort_desc = st.checkbox("Descending", value=True, key="sortdesc")
 
@@ -150,7 +119,10 @@ if pet_names:
         if filter_pri != "All":
             display_tasks = Scheduler.filter_tasks(display_tasks, priority=Priority[filter_pri])
 
-        display_tasks = Pet.sort_tasks(display_tasks, key=sort_key, reverse=sort_desc)
+        if sort_key == "time":
+            display_tasks = Scheduler.sort_by_time(display_tasks, reverse=sort_desc)
+        else:
+            display_tasks = Pet.sort_tasks(display_tasks, key=sort_key, reverse=sort_desc)
 
         if display_tasks:
             st.table([
@@ -191,28 +163,56 @@ if pet_names:
             scheduler = Scheduler()
             plan = scheduler.generate_plan(owner, pet, pet.tasks, constraints)
 
-            st.markdown(f"**Schedule for {pet.summary()}** — Owner: {owner.name}")
-            for item in plan.items:
-                t = item.task
-                st.markdown(
-                    f"- `{item.start_time}–{item.end_time}` **{t.title}** "
-                    f"({t.priority.name}, {t.duration_minutes} min) — {item.reason}"
-                )
+            # Cross-pet conflict detection
+            all_labeled = owner.get_tasks()
+            cross_warnings = Scheduler.detect_conflicts(all_labeled)
 
-            if plan.conflicts:
-                st.warning("**Schedule Conflicts Detected:**")
-                for c in plan.conflicts:
-                    st.markdown(f"- {c}")
+            # Conflicts — shown first so the owner sees problems immediately
+            if plan.conflicts or cross_warnings:
+                combined = list(set(plan.conflicts + cross_warnings))
+                st.error(f"**{len(combined)} Conflict(s) Detected**")
+                for c in combined:
+                    st.warning(
+                        f"{c}\n\n"
+                        "**Tip:** Change the fixed time on one of these tasks "
+                        "to resolve the overlap."
+                    )
 
+            # Schedule table
+            st.markdown(f"### Schedule for {pet.summary()}")
+            if plan.items:
+                st.table([
+                    {
+                        "Time": f"{item.start_time} – {item.end_time}",
+                        "Task": item.task.title,
+                        "Priority": item.task.priority.name,
+                        "Duration": f"{item.task.duration_minutes} min",
+                        "Type": item.task.fixed_time or "Flexible",
+                        "Reason": item.reason,
+                    }
+                    for item in plan.items
+                ])
+            else:
+                st.info("No tasks could be scheduled.")
+
+            # Utilization metrics
+            col_m1, col_m2, col_m3 = st.columns(3)
+            col_m1.metric("Tasks Scheduled", len(plan.items))
+            col_m2.metric("Time Used", f"{plan.total_minutes_used} / {plan.total_minutes_available} min")
+            col_m3.metric("Utilization", f"{plan.utilization():.0%}")
+
+            # Dropped tasks
             if plan.dropped:
-                st.markdown("**Dropped tasks:**")
-                for d in plan.dropped:
-                    st.markdown(f"- ✗ {d.task.title} — {d.reason}")
+                with st.expander(f"Dropped tasks ({len(plan.dropped)})", expanded=False):
+                    st.table([
+                        {
+                            "Task": d.task.title,
+                            "Duration": f"{d.task.duration_minutes} min",
+                            "Reason": d.reason,
+                        }
+                        for d in plan.dropped
+                    ])
 
-            st.info(
-                f"Used {plan.total_minutes_used}/{plan.total_minutes_available} min "
-                f"({plan.utilization():.0%} utilization)"
-            )
-            st.markdown(f"*{plan.summary_reasoning}*")
+            st.success(plan.summary_reasoning)
 else:
     st.info("Add a pet to start scheduling.")
