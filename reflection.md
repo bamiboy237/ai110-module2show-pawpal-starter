@@ -10,7 +10,7 @@ Response: A User should be a able to add pets and their info, add/edit tasks wit
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
-Response: The design includes 10 classes. **Owner** and **Pet** hold user/animal info. **CareTask** represents a care activity with duration and priority (using a **Priority** enum). **ConstraintProfile** bundles scheduling limits (available time, max tasks, preferences). **Scheduler** scores and ranks tasks, then produces a **DailyPlan** containing **PlanItems** (scheduled tasks with time slots and reasoning) and **DroppedItems** (excluded tasks with explanations). **PawPalApp** is the Streamlit UI layer that collects input and displays the plan.
+Response: My design includes 10 classes. **Owner** and **Pet** hold user/animal info. **CareTask** represents a care activity with duration and priority (using a **Priority** enum). **ConstraintProfile** bundles scheduling limits (available time, max tasks, preferences). **Scheduler** scores and ranks tasks, then produces a **DailyPlan** containing **PlanItems** (scheduled tasks with time slots and reasoning) and **DroppedItems** (excluded tasks with explanations). 
 
 **b. Design changes**
 
