@@ -33,6 +33,33 @@ Beyond the basic daily planner, PawPal+ includes four algorithmic features:
 
 The scheduler itself uses a **two-phase greedy algorithm**: fixed-time tasks are placed first (with overlap rejection), then free time slots are filled with flexible tasks ranked by a scoring formula (priority + efficiency bonus + preference boost).
 
+## Testing PawPal+
+
+### Running tests
+
+```bash
+source .venv/bin/activate
+python -m pytest tests/test_pawpal.py -v
+```
+
+### What the tests cover
+
+The test suite contains 22 tests across six areas:
+
+| Area | Tests | What is verified |
+|------|-------|------------------|
+| Task basics | 2 | Marking complete, adding tasks to a pet |
+| Sort by time | 2 | Chronological ordering, `None` times sort last |
+| Sort by priority | 2 | HIGH > MEDIUM > LOW, same-priority stability |
+| Recurrence logic | 5 | Daily/weekly due dates, never-completed, one-time tasks |
+| Conflict detection | 4 | Same-pet overlaps, cross-pet overlaps, no-conflict and no-fixed-time edge cases |
+| Scheduling | 3 | Fixed-before-flexible placement, empty input, dropped tasks when time runs out |
+| Filtering | 3 | By category, by priority, by pet name across multiple pets |
+
+### Confidence level
+
+**4 / 5 stars** — The core scheduling logic, recurrence rules, and conflict detection are well covered with both happy-path and edge-case tests. One star is withheld because the Streamlit UI layer (`app.py`) is not yet tested, and more complex multi-pet scheduling scenarios (e.g., interleaving fixed tasks from two pets into a single owner time budget) have not been exercised.
+
 ## Getting started
 
 ### Setup
