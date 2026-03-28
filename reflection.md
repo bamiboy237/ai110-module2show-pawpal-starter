@@ -2,15 +2,22 @@
 
 ## 1. System Design
 
+Response: A User should be a able to add pets and their info, add/edit tasks with constraints, get a plan/daily schedule, see the plan
+
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Response: The design includes 10 classes. **Owner** and **Pet** hold user/animal info. **CareTask** represents a care activity with duration and priority (using a **Priority** enum). **ConstraintProfile** bundles scheduling limits (available time, max tasks, preferences). **Scheduler** scores and ranks tasks, then produces a **DailyPlan** containing **PlanItems** (scheduled tasks with time slots and reasoning) and **DroppedItems** (excluded tasks with explanations). **PawPalApp** is the Streamlit UI layer that collects input and displays the plan.
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+Response: Added `task_id: str` to CareTask. This is the entity users edit, select, and delete, so it needs a stable identifier. PlanItem and DroppedItem reference the CareTask object directly and don't need their own ids unless we later serialize to storage with independent row identifiers.
 
 ---
 

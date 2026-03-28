@@ -1,0 +1,92 @@
+@startuml PawPal+
+
+skinparam classAttributeIconSize 0
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+class Owner {
+  +name: str
+  +available_minutes_per_day: int
+  +preferences: dict
+}
+
+class Pet {
+  +name: str
+  +species: str
+  +age: int
+  +summary(): str
+}
+
+class CareTask {
+  +task_id: str
+  +title: str
+  +category: str
+  +duration_minutes: int
+  +priority: Priority
+  +notes: str
+}
+
+class ConstraintProfile {
+  +time_available_minutes: int
+  +owner_preferences: dict
+  +max_tasks_per_day: int
+}
+
+class Scheduler {
+  +generate_plan(owner, pet, tasks, constraints): DailyPlan
+  +score_task(task, constraints): float
+  +explain_choice(task): str
+}
+
+class PlanItem {
+  +task: CareTask
+  +start_time: str
+  +end_time: str
+  +reason: str
+}
+
+class DroppedItem {
+  +task: CareTask
+  +reason: str
+}
+
+class DailyPlan {
+  +date: str
+  +items: List<PlanItem>
+  +dropped: List<DroppedItem>
+  +total_minutes_used: int
+  +total_minutes_available: int
+  +summary_reasoning: str
+  +add_item(item: PlanItem): void
+  +drop_item(item: DroppedItem): void
+  +utilization(): float
+}
+
+class PawPalApp {
+  +collect_owner_pet_info()
+  +add_or_edit_task()
+  +generate_daily_plan()
+  +display_plan()
+}
+
+Owner "1" --> "1..*" Pet : cares for
+Pet "1" --> "0..*" CareTask : has tasks
+CareTask --> Priority : uses
+Owner "1" --> "1" ConstraintProfile : defines
+Scheduler --> ConstraintProfile : applies
+Scheduler --> DailyPlan : creates
+DailyPlan "1" o-- "0..*" PlanItem : contains
+DailyPlan "1" o-- "0..*" DroppedItem : tracks excluded
+PlanItem --> CareTask : schedules
+DroppedItem --> CareTask : references
+PawPalApp ..> Owner : inputs
+PawPalApp ..> Pet : inputs
+PawPalApp ..> CareTask : manages
+PawPalApp ..> Scheduler : requests plan
+PawPalApp ..> DailyPlan : displays
+
+@enduml
