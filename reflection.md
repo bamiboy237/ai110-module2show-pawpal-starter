@@ -33,6 +33,8 @@ Response: Added `task_id: str` to CareTask. This is the entity users edit, selec
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+Response: The scheduler uses a **greedy, first-fit** algorithm for flexible tasks: it sorts them by score (priority + efficiency + preference boost) and drops each one into the first free slot that is large enough. This means a high-priority 25-minute task might consume a 60-minute gap, leaving only 35 minutes — even though swapping it with a lower-priority 20-minute task first could have fit both. A true optimal solution would try every possible ordering (a bin-packing problem, which is NP-hard), so the greedy approach trades **schedule optimality for speed and simplicity**. For a pet-care app where the owner has 5-10 daily tasks this tradeoff is reasonable — the greedy result is "good enough" and the code stays readable. If we needed to squeeze every minute, we could add backtracking or use a constraint solver, but that complexity isn't justified at this scale.
+
 ---
 
 ## 3. AI Collaboration

@@ -22,6 +22,17 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Smarter Scheduling
+
+Beyond the basic daily planner, PawPal+ includes four algorithmic features:
+
+- **Filter tasks** — narrow tasks by completion status, category, priority, or pet name (`Scheduler.filter_tasks`, `Owner.get_tasks`).
+- **Sort tasks** — order tasks by priority, duration, category, title, or fixed time (`Pet.sort_tasks`, `Scheduler.sort_by_time`).
+- **Recurring tasks** — daily and weekly tasks auto-reset via `CareTask.is_due()`, so the scheduler re-includes them without manual re-adding.
+- **Conflict detection** — `Scheduler.detect_conflicts` uses a sort-then-sweep algorithm to find overlapping fixed-time tasks within or across pets, returning warnings instead of crashing.
+
+The scheduler itself uses a **two-phase greedy algorithm**: fixed-time tasks are placed first (with overlap rejection), then free time slots are filled with flexible tasks ranked by a scoring formula (priority + efficiency bonus + preference boost).
+
 ## Getting started
 
 ### Setup
